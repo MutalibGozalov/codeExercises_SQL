@@ -1,0 +1,98 @@
+1) GROUP BY
+Even if we group datas by the column which has all distinct vales thus all groups will
+have only 1 of corresponding values of any other columns, it's still will give error 
+if we try to add these columns to SELECT claus because SQL thiks multipe different
+possible values of these columns can present in one group so it can't decide which vale
+should be choosen to show on query result.
+
+2) If we try to GROUP datas BY 2 or more different Columns it will group them by the combination
+of these columns where all possible combination are distinct. Same applies to SELECT DISTINCT.
+
+3) While U can cast 10 character text to 5 char it will return 1st 5 char of 10 without error, 
+but if U try to cast integer with more digit than casted char count it will give an error
+
+4) AND, OR operators has predecency order while both of them applied in query, AND operator
+which has higer predecence considered 1st then OR operator. If we want OR to execude 1st
+then we have to use parantheses
+
+5) TOP ifadesi bir sorguda en son çalişan kisimdir. Yani öncelikle sorgumuz çaliştirilir ve oluşacak olan sonuç kümesinin (result set) ilk 5 kaydi alinir.
+
+6) SELECT FirstName FROM Employees  WHERE FirstName LIKE '[^M]%'
+The LIKE operator is used for pattern matching in SQL. In this case, the pattern is [^M]%. Let's break down the pattern:
+
+	-	[ and ] denote a character range.
+	-	^ inside the character range specifies negation.
+	-	M is the character to be excluded.
+	-	% is a wildcard that matches any sequence of characters.
+Therefore, the pattern [^MZ]% matches any string where the first character is not "M" or "Z" followed by any number of characters.(note: negation ^ negate all chars inside range, eg [^A-K])
+
+7) SELECT ASCII ('A') AS [ASCII Kodu]
+   SELECT CHAR(65) AS [Karakter]
+these 2 functions convert char to ASCII number and vice versa
+
+8) SELECT [VALUE], value, VALUE AS ResultSonucu FROM STRING_SPLIT('ali.vuranok@code.edu.az','.')
+Some funvtions in SQL return TABLE data types which has column name 'VALUE' which
+can be used to query datas in it.
+
+9) WHILE LOOP
+DECLARE @i INT = 65;
+WHILE @i <= 90
+	BEGIN
+		PRINT char(@i);
+		SET @i = @i + 1;
+	END;
+
+10) Column aliases can not be used in WHERE, HAVING clauses but they can be used in
+ORDER BY clause
+
+11) SubQueries are One row(one column), Multiple row and Corelated subqueries.
+Corelated SubQueries and their outer queries can use each others aliases and columns.
+Subqueries can be used after SELECT, FROM, WHERE, HAVING and etc. clauses.
+
+             -----SITUATIONS WITH SUBQUERIES AFTER SELECT STATEMNT------
+1-SUBQUERY RETURNS ONE CELL
+2-SUBQUERY RETURNS TABLE BUT IT USES OUTER QUERY TBALE COLUMN AND JOINS TWO TABLES
+    1st situation is like putting any scalar value in column name
+    2nd situation where subquery retunrs multiple rows and even columns, this 
+situation has 2 possible scenario first the subquery returns those datas arbitrary,
+this will give error becasu it's impossible sql to know which values where to put.
+    The second scenario is where subquery returns datas based on joining outer query
+table and subquery table using any 2 of their connecting FK->PK columns.
+
+1ST SITUATION:
+	
+	SELECT FirstName, (SELECT MAX(EmployeeID) FROM Employees ) as 'Max', 'Arbitrary' as Ar
+	FROM Employees
+
+OUTPUT:
+Firstname| Max |    Ar
+Nancy	   11	 Arbitrary
+Andrew	   11	 Arbitrary
+Janet	   11	 Arbitrary
+Margaret   11	 Arbitrary
+Steven	   11	 Arbitrary
+Michael	   11	 Arbitrary
+Robert	   11	 Arbitrary
+Laura	   11	 Arbitrary
+Anne	   11	 Arbitrary
+Andrew	   11	 Arbitrary
+Andrew	   11	 Arbitrary
+
+
+2ND SITUATION:
+
+	SELECT ShipVia, (SELECT CompanyName 
+				FROM Shippers S 
+				WHERE O.ShipVia = S.ShipperID) AS CompanyName
+	FROM Orders O
+	GROUP BY O.ShipVia
+
+OUTPUT:
+ShipVia |   CompanyName    
+   1	  Speedy Express
+   2	  United Package
+   3	  Federal Shipping
+
+
+And if we use GROUP BY we dont have to include CompanyName subquery column inside grouping because normally columns that listed with select must be
+included in GROUP BY clause or it will give error. And thats because subqery will return same caunt of data as ShipVia anyway .......
