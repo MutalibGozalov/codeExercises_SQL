@@ -427,26 +427,72 @@ FROM Orders O
 GROUP BY O.ShipVia
 
 
---PROBLEM
-SELECT P.ProductName, (SELECT CategoryName FROM Categories C WHERE P.CategoryID = C.CategoryID)
-FROM Products P
---GROUP BY P.CategoryID
-
-SELECT C.CategoryName, (SELECT ProductName FROM Products p WHERE P.CategoryID = C.CategoryID) as CN
-FROM Categories C
---GROUP BY C.CategoryName
-
-SELECT COUNT(*) 'Categories' FROM Categories
-SELECT COUNT(*) 'Products' FROM Products
 
 
 --TWO SITUATIONS WITH SUBQUERIES AFTER SELECT STATEMENT(SUBQUERY AS COLUMN)
 SELECT FirstName, (SELECT MAX(EmployeeID) FROM Employees ) as 'Max', 'Arbitrary' as Ar
 FROM Employees
-
-
+------
 SELECT ShipVia, (SELECT CompanyName 
 				FROM Shippers S 
 				WHERE O.ShipVia = S.ShipperID) AS CompanyName
 FROM Orders O
 GROUP BY O.ShipVia
+
+
+								--PROBLEM
+SELECT P.ProductName, (SELECT CategoryName FROM Categories C WHERE P.CategoryID = C.CategoryID)
+FROM Products P					-- WORKS
+--GROUP BY P.CategoryID
+
+SELECT C.CategoryName, (SELECT ProductName FROM Products p WHERE P.CategoryID = C.CategoryID) as CN
+FROM Categories C				-- WON'T WORK
+--GROUP BY C.CategoryName
+
+
+-- EXPLANATION
+/*
+corelated subqueries executes every time one loop of outer query executed.
+When one row of dat fetched from database the subquery will run on that data by checking given reltaion
+in our case is TableMany.TableOneId of current data row table data should be equal to TableOne.Id of
+subquery table. And very time a data row comes from outer table one corresponding data will be queried 
+by subquery.
+If in subquery there are more than one value for current outer data row then db will give multiple row
+error, which is usual among one-to-many relationships where one data from one side table will have multible
+datas from many side table. But if only by chance each one_table datas has 1 related data from many_table
+then our query will not give an error.
+
+REFERENCE: https://www.ibm.com/docs/en/informix-servers/14.10?topic=documentation-sql-programming
+
+INSERT INTO TableOne VALUES
+('Name_1'),
+('Name_2'),
+('Name_3'),
+('Name_4'),
+('Name_5'),
+('Name_6'),
+('Name_7'),
+('Name_8'),
+('Name_9')
+
+INSERT INTO TableMany VALUES
+(1, 'Many_1'),
+(1, 'Many_2'),
+(2, 'Many_3'),
+(3, 'Many_4')
+*/
+
+
+SELECT TM.Name, (SELECT T1.Name FROM TableOne T1 WHERE T1.Id = TM.TableOneId) Table1
+FROM TableMany TM
+--AND
+SELECT T1.Name, (SELECT TM.Name FROM TableMany TM WHERE TM.TableOneId = T1.Id)
+FROM TableOne T1
+--WHERE T1.Name != 'Name_1' --WILL WORK
+
+
+
+
+
+
+-- Sipariş Alan Çalışanları Listeleyiniz

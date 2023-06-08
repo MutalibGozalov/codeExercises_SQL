@@ -45,19 +45,34 @@ WHILE @i <= 90
 10) Column aliases can not be used in WHERE, HAVING clauses but they can be used in
 ORDER BY clause
 
-11) SubQueries are One row(one column), Multiple row and Corelated subqueries.
-Corelated SubQueries and their outer queries can use each others aliases and columns.
-Subqueries can be used after SELECT, FROM, WHERE, HAVING and etc. clauses.
+11) SubQueries are One row(one column), Multiple row and Correlated subqueries.
+
+A subquery is correlated when the value that it produces depends on a value produced by the outer SELECT statement that contains it. 
+Corelated SubQueries and their outer queries can use each others aliases and columns. 
+Any other kind of subquery is considered uncorrelated. Only uncorrelated subqueries are valid in the FROM clause of the SELECT statement.
+
+The database server supports subqueries in the following contexts:
+A SELECT statement nested in the Projection clause of another SELECT statement
+a SELECT statement nested in the WHERE clause of another SELECT statement
+a SELECT statement nested in the FROM clause of another SELECT statement.
+You can also specify a subquery in various clauses of the INSERT, DELETE, MERGE, or UPDATE statements
+
+The important feature of a correlated subquery is that, because it depends on a value from the outer SELECT, 
+it must be executed repeatedly, once for every value that the outer SELECT produces. An uncorrelated subquery is executed only once.
 
              -----SITUATIONS WITH SUBQUERIES AFTER SELECT STATEMNT------
 1-SUBQUERY RETURNS ONE CELL
-2-SUBQUERY RETURNS TABLE BUT IT USES OUTER QUERY TBALE COLUMN AND JOINS TWO TABLES
+2-SUBQUERY RETURNS TABLE BUT IT'S CORRELATED
     1st situation is like putting any scalar value in column name
-    2nd situation where subquery retunrs multiple rows and even columns, this 
-situation has 2 possible scenario first the subquery returns those datas arbitrary,
-this will give error becasu it's impossible sql to know which values where to put.
+    2nd situation where subquery returns multiple rows and even columns, this 
+situation has 2 possible scenario first the subquery returns those datas arbitrary aka it's 
+uncorrelated, this will give error because it's impossible sql to know which values where to put.
     The second scenario is where subquery returns datas based on joining outer query
-table and subquery table using any 2 of their connecting FK->PK columns.
+table and subquery table using any 2 of their connecting FK->PK columns aka it's correlated.
+
+!!!-NOTE-!!!: When using correlated subqueries in SELECT statement be sure outer query tabel relates
+to subquery table by Many-to-One relation not othervise or possibly subquery will retuen
+multiple data for one outer query result(single data) and db will give an error!
 
 1ST SITUATION:
 	
@@ -94,5 +109,8 @@ ShipVia |   CompanyName
    3	  Federal Shipping
 
 
-And if we use GROUP BY we dont have to include CompanyName subquery column inside grouping because normally columns that listed with select must be
-included in GROUP BY clause or it will give error. And thats because subqery will return same caunt of data as ShipVia anyway .......
+And if we use GROUP BY we don't have to include CompanyName subquery column inside grouping, where normally columns that listed with select must be
+included in GROUP BY clause or it will give error. And thats because since outer query contains columns from many_table and subqery is containing
+datas from one_table, then for a data row from outer table, it's impossible that would be more than one related data existed in subquery table.
+
+REFERENCE: https://www.ibm.com/docs/en/informix-servers/14.10?topic=documentation-sql-programming
